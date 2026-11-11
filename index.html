@@ -404,7 +404,16 @@
           <ul id="modal-facts-list" class="lesson-list"></ul>
         </div>
 
+        <!-- புதிய கோடு: -->
         <div class="modal-footer-cta">
+          <div style="display: flex; gap: 0.5rem; margin-right: auto;">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="speakText(document.getElementById('modal-planet-name').textContent + '. ' + document.getElementById('modal-planet-desc').textContent)">
+              🔊 Replay
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="stopVoice()">
+              🔇 Mute
+            </button>
+          </div>
           <button class="btn btn-primary btn-sm" id="modal-focus-3d-btn">View in 3D Scene</button>
         </div>
       </div>
