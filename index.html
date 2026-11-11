@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar System Explorer – 3D STEM Learning Platform</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts for Modern Scientific Interface -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- Three.js and OrbitControls via unpkg CDN -->
+  <!-- WITH THIS: -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+  <!-- Background Canvas for Animated Starfield & Particles -->
+  <div id="starfield-bg"></div>
+
+  <!-- Main Navigation Header -->
+  <header class="navbar">
+    <div class="nav-brand" onclick="navigateTo('home')">
+      <span class="brand-icon">🪐</span>
+      <div class="brand-text">
+        <span class="brand-title">SOLAR EXPLORER</span>
+        <span class="brand-sub">STEM Learning Platform</span>
+      </div>
+    </div>
+    <nav class="nav-links" id="nav-links">
+      <button class="nav-link active" data-target="home">Home</button>
+      <button class="nav-link" data-target="simulation">3D Orbit Engine</button>
+      <button class="nav-link" data-target="planets-gallery">Planet Explorer</button>
+      <button class="nav-link" data-target="learning">Learning Hub</button>
+      <button class="nav-link" data-target="quiz">STEM Quiz</button>
+      <button class="nav-link" data-target="about">About Project</button>
+    </nav>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle Navigation">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <!-- ==================== SECTION A: HOME PAGE ==================== -->
+  <main>
+    <section id="view-home" class="view-panel active">
+      <div class="hero-container">
+        <div class="hero-content">
+          <div class="badge">Interactive STEM Exhibition Project</div>
+          <h1 class="hero-title">Journey Across The <span class="text-glow">Solar System</span></h1>
+          <p class="hero-desc">
+            Explore celestial mechanics, examine high-fidelity 3D planet models, inspect orbital dynamics, and test your astronomical mastery in an engaging, self-paced interactive environment.
+          </p>
+          <div class="hero-cta-group">
+            <button class="btn btn-primary" onclick="navigateTo('simulation')">
+              <span class="btn-icon">🚀</span> Launch 3D Simulation
+            </button>
+            <button class="btn btn-secondary" onclick="navigateTo('planets-gallery')">
+              <span class="btn-icon">🔍</span> Explore Planets
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-quick-cards">
+          <div class="quick-card" onclick="navigateTo('simulation')">
+            <div class="card-icon">🌌</div>
+            <h3>Real-Time 3D Engine</h3>
+            <p>Control orbit playback speeds, toggle trace rings, zoom, and pivot across space.</p>
+          </div>
+          <div class="quick-card" onclick="navigateTo('learning')">
+            <div class="card-icon">📚</div>
+            <h3>STEM Learning Mode</h3>
+            <p>Master Keplerian orbits, axial rotations, and Inner vs. Outer planetary classifications.</p>
+          </div>
+          <div class="quick-card" onclick="navigateTo('quiz')">
+            <div class="card-icon">🧠</div>
+            <h3>15-Question Challenge</h3>
+            <p>Compete for the highest score with instant answer rationales and score feedback.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION B: INTERACTIVE 3D SIMULATION ==================== -->
+    <section id="view-simulation" class="view-panel">
+      <div class="simulation-layout">
+        <!-- 3D Canvas Mounting Area -->
+        <div id="canvas-container">
+          <div id="webgl-loading" class="overlay-loader">
+            <div class="spinner"></div>
+            <p>Initializing Three.js Solar Engine...</p>
+          </div>
+          <div id="webgl-error" class="overlay-loader hidden">
+            <h3>⚠️ WebGL Unavailable</h3>
+            <p>Your browser or graphics hardware does not have WebGL acceleration enabled. Please enable hardware acceleration in browser settings.</p>
+          </div>
+        </div>
+
+        <!-- Floating Simulation HUD Controls -->
+        <aside class="sim-hud">
+          <div class="hud-header">
+            <h3>Simulation Deck</h3>
+            <span class="hud-status live"><span class="dot"></span> Running</span>
+          </div>
+
+          <div class="hud-section">
+            <label>Simulation Playback</label>
+            <div class="btn-group">
+              <button id="btn-toggle-orbit" class="btn-sm btn-action">Pause Orbits</button>
+              <button id="btn-reset-cam" class="btn-sm btn-ghost">Reset Camera</button>
+            </div>
+          </div>
+
+          <div class="hud-section">
+            <label for="speed-slider">Orbital Velocity Multiplier: <span id="speed-val">1.0x</span></label>
+            <input type="range" id="speed-slider" min="0" max="3" step="0.1" value="1.0">
+          </div>
+
+          <div class="hud-section">
+            <label>Direct Target Lock</label>
+            <div class="planet-quick-selector" id="planet-quick-selector">
+              <!-- Dynamically populated buttons -->
+            </div>
+          </div>
+
+          <div class="hud-disclaimer">
+            <small>ℹ️ Note: Planetary sizes and orbital radii have been scaled for educational legibility.</small>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION C: PLANET EXPLORER GALLERY ==================== -->
+    <section id="view-planets-gallery" class="view-panel">
+      <div class="section-container">
+        <header class="section-head">
+          <h2 class="section-title">Celestial Body Roster</h2>
+          <p class="section-subtitle">Select any planet to inspect full astronomical metrics, atmospheric compositions, and unique phenomena.</p>
+        </header>
+
+        <div class="planet-grid" id="planet-grid-container">
+          <!-- Populated by script.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION D: LEARNING HUB ==================== -->
+    <section id="view-learning" class="view-panel">
+      <div class="section-container">
+        <header class="section-head">
+          <h2 class="section-title">STEM Educational Concepts</h2>
+          <p class="section-subtitle">Core principles of celestial mechanics, structural classification, and planetary motion.</p>
+        </header>
+
+        <div class="learning-grid">
+          <article class="learning-card">
+            <div class="article-badge">Module 01</div>
+            <h3>The Sun: The Solar Engine</h3>
+            <p>
+              The Sun is a G-type main-sequence star comprising 99.86% of the solar system's mass. Through the proton-proton chain nuclear fusion process, it fuses 600 million tons of hydrogen into helium every second in its core, generating light, thermal radiation, and the solar wind that shields our solar system within the heliosphere.
+            </p>
+          </article>
+
+          <article class="learning-card">
+            <div class="article-badge">Module 02</div>
+            <h3>Rotation vs. Revolution</h3>
+            <div class="comparison-box">
+              <div class="comp-col">
+                <strong>Rotation (Axial Spin)</strong>
+                <p>The turning of a planet on its internal axis. Determines the duration of day and night. Earth rotates once every 23.93 hours.</p>
+              </div>
+              <div class="comp-col">
+                <strong>Revolution (Orbital Flight)</strong>
+                <p>The travel of a planet along an elliptical orbit around the Sun. Determines planetary years. Earth revolves once every 365.25 days.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="learning-card">
+            <div class="article-badge">Module 03</div>
+            <h3>Inner Planets vs. Outer Planets</h3>
+            <div class="comparison-box">
+              <div class="comp-col">
+                <strong>Terrestrial (Inner)</strong>
+                <p>Mercury, Venus, Earth, Mars. Compact, dense rocky surfaces, high metal content, few or no moons, no ring systems, and located inside the Asteroid Belt.</p>
+              </div>
+              <div class="comp-col">
+                <strong>Jovian (Outer Giants)</strong>
+                <p>Jupiter, Saturn (Gas Giants); Uranus, Neptune (Ice Giants). Massive, low-density hydrogen, helium, and icy volatile compositions, dozens of moons, and extensive ring systems.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="learning-card">
+            <div class="article-badge">Module 04</div>
+            <h3>Kepler's Laws of Planetary Motion</h3>
+            <p>
+              Planets do not travel in perfect circles. According to Johannes Kepler:
+            </p>
+            <ol class="lesson-list">
+              <li>Planetary orbits are ellipses with the Sun sitting at one focal point.</li>
+              <li>A line connecting a planet and the Sun sweeps out equal areas during equal intervals of time (planets move faster when closest to the Sun).</li>
+              <li>The square of a planet's orbital period is proportional to the cube of the semi-major axis of its orbit ($P^2 = a^3$).</li>
+            </ol>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION E: STEM QUIZ ==================== -->
+    <section id="view-quiz" class="view-panel">
+      <div class="section-container quiz-wrapper">
+        <div class="quiz-card" id="quiz-container">
+          <!-- Screen 1: Quiz Intro -->
+          <div id="quiz-intro-screen">
+            <div class="quiz-badge">Interactive Knowledge Test</div>
+            <h2 class="quiz-main-title">Solar System STEM Challenge</h2>
+            <p class="quiz-desc">
+              Test your grasp of planetary distances, rotational dynamics, and planetary composition. 15 randomized multiple-choice questions with real-time scientific feedback.
+            </p>
+            <div class="quiz-meta-info">
+              <span>📋 15 Questions</span>
+              <span>⏱️ Untimed</span>
+              <span>🎯 Pass Threshold: 70%</span>
+            </div>
+            <button class="btn btn-primary" id="btn-start-quiz">Begin Quiz</button>
+          </div>
+
+          <!-- Screen 2: Active Question Form -->
+          <div id="quiz-play-screen" class="hidden">
+            <div class="quiz-progress-bar-wrap">
+              <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
+            </div>
+
+            <div class="quiz-hud-top">
+              <span id="quiz-question-counter">Question 1 of 15</span>
+              <span id="quiz-score-tracker">Score: 0</span>
+            </div>
+
+            <h3 class="quiz-question-text" id="quiz-question-text">Question Prompt</h3>
+
+            <div class="quiz-options-grid" id="quiz-options-container">
+              <!-- Options populated dynamically -->
+            </div>
+
+            <div class="quiz-feedback-box hidden" id="quiz-feedback-box">
+              <div id="quiz-feedback-heading" class="feedback-heading">Correct!</div>
+              <p id="quiz-feedback-explanation">Explanation text goes here.</p>
+              <button class="btn btn-primary btn-sm" id="btn-next-question">Next Question ➔</button>
+            </div>
+          </div>
+
+          <!-- Screen 3: Final Results -->
+          <div id="quiz-results-screen" class="hidden">
+            <div class="result-badge" id="quiz-result-badge">Exhibition Master</div>
+            <h2 class="quiz-main-title">Quiz Completed!</h2>
+            <div class="score-display">
+              <span class="score-num" id="quiz-final-score">0</span>
+              <span class="score-total">/ 15</span>
+            </div>
+            <p class="score-feedback-text" id="quiz-score-message">Your score assessment will appear here.</p>
+            <div class="quiz-action-group">
+              <button class="btn btn-primary" id="btn-restart-quiz">🔄 Retake Quiz</button>
+              <button class="btn btn-secondary" onclick="navigateTo('simulation')">🚀 Back to 3D View</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SECTION F: ABOUT PROJECT ==================== -->
+    <section id="view-about" class="view-panel">
+      <div class="section-container">
+        <header class="section-head">
+          <h2 class="section-title">About Solar System Explorer</h2>
+          <p class="section-subtitle">Exhibition project overview, design methodology, and pedagogical goals.</p>
+        </header>
+
+        <div class="about-grid">
+          <div class="about-text-block">
+            <h3>Project Vision</h3>
+            <p>
+              The Solar System Explorer was built for STEM science exhibitions to bridge the gap between static textbook diagrams and dynamic three-dimensional astrophysics. By combining spatial computing concepts with interactive gamification, students transition from passive observers to active cosmic researchers.
+            </p>
+
+            <h3>Pedagogical Benefits</h3>
+            <ul class="lesson-list">
+              <li><strong>Spatial Intuition:</strong> Visualizing scaled orbits demonstrates Keplerian speed variations directly.</li>
+              <li><strong>Comparative Planetology:</strong> Immediate side-by-side metric inspection sharpens data literacy.</li>
+              <li><strong>Immediate Knowledge Reinforcement:</strong> The STEM quiz rewards curiosity with contextual explanations.</li>
+            </ul>
+          </div>
+
+          <div class="tech-stack-card">
+            <h3>Technical Architecture</h3>
+            <div class="tech-item">
+              <span class="tech-tag">HTML5</span>
+              <p>Semantic document layout, WebGL mounting frame, and accessible DOM structures.</p>
+            </div>
+            <div class="tech-item">
+              <span class="tech-tag">CSS3</span>
+              <p>Modern dark-navy space theme, CSS glassmorphism, responsive grid layouts, and custom scrollbars.</p>
+            </div>
+            <div class="tech-item">
+              <span class="tech-tag">Three.js (WebGL)</span>
+              <p>Hardware-accelerated 3D scene rendering, procedural planetary textures, point-light illumination, and orbital mathematics.</p>
+            </div>
+            <div class="tech-item">
+              <span class="tech-tag">Vanilla JavaScript</span>
+              <p>Modular, dependency-free architecture featuring smooth raycasting interactions, state management, and quiz computation.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== PLANET DETAIL MODAL ==================== -->
+  <div class="modal-overlay hidden" id="planet-modal">
+    <div class="modal-card">
+      <button class="modal-close" id="modal-close-btn" aria-label="Close modal">&times;</button>
+      
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-category" id="modal-planet-type">Terrestrial Planet</span>
+          <h2 class="modal-title" id="modal-planet-name">Planet Name</h2>
+          <p class="modal-tagline" id="modal-planet-tagline">Tagline goes here</p>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-description" id="modal-planet-desc">Detailed scientific description.</p>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">Diameter</span>
+            <span class="metric-val" id="modal-diameter">--</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Distance from Sun</span>
+            <span class="metric-val" id="modal-distance">--</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Avg Temperature</span>
+            <span class="metric-val" id="modal-temp">--</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Orbital Period</span>
+            <span class="metric-val" id="modal-orbit">--</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Known Moons</span>
+            <span class="metric-val" id="modal-moons">--</span>
+          </div>
+        </div>
+
+        <div class="modal-facts-section">
+          <h4>Key Astronomical Facts</h4>
+          <ul id="modal-facts-list" class="lesson-list">
+            <!-- Populated via script -->
+          </ul>
+        </div>
+
+        <div class="modal-footer-cta">
+          <button class="btn btn-primary btn-sm" id="modal-focus-3d-btn">View in 3D Scene</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Data First, Then Main Application Engine -->
+  <script src="planets.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
