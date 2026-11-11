@@ -587,20 +587,57 @@ function renderPlanetGallery() {
   });
 }
 
-/* ==================== 6. MODAL HANDLERS ==================== */
+/* ==================== VOICE SYNTHESIS (TEXT-TO-SPEECH) ==================== */
+function speakText(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel(); // பழைய பேச்சை நிறுத்த
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    utterance.lang = 'en-US';
+
+    const voices = window.speechSynthesis.getVoices();
+    const naturalVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Natural') || v.name.includes('Google')));
+    if (naturalVoice) {
+      utterance.voice = naturalVoice;
+    }
+
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
+function stopVoice() {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+/* ==================== 6. MODAL HANDLERS (VOICE INTEGRATED) ==================== */
 function initModalHandlers() {
   const modal = document.getElementById('planet-modal');
   const closeBtn = document.getElementById('modal-close-btn');
   const focusBtn = document.getElementById('modal-focus-3d-btn');
 
-  closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+  const handleClose = () => {
+    modal.classList.add('hidden');
+    stopVoice(); // Modal மூடும் போது வாய்ஸ் நிற்கும்
+  };
+
+  closeBtn.addEventListener('click', handleClose);
 
   modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.classList.add('hidden');
+    if (e.target === modal) handleClose();
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      handleClose();
+    }
   });
 
   focusBtn.addEventListener('click', () => {
-    modal.classList.add('hidden');
+    handleClose();
     navigateTo('simulation');
     if (state.focusedTarget) {
       let match = null;
@@ -645,8 +682,11 @@ function openPlanetModal(entity) {
   }
 
   document.getElementById('planet-modal').classList.remove('hidden');
-}
 
+  // 👉 இதுதான் நீங்க தொட்டதும் பேச வைக்கும் வரி:
+  const speechScript = `${entity.name}. ${entity.tagline}. ${entity.description}`;
+  speakText(speechScript);
+}
 /* ==================== 7. STEM QUIZ ENGINE ==================== */
 function initQuizEngine() {
   const startBtn = document.getElementById('btn-start-quiz');
